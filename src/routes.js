@@ -1,7 +1,7 @@
 import _debug from 'debug';
 import route from 'koa-route';
 
-import { CellLine } from './models';
+import { Assay, CellLine } from './models';
 const debug = _debug('server:routes');
 
 const BASE = '/biocomplete/api/v1';
@@ -30,10 +30,9 @@ const searchEntities = async (ctx, entity) => {
   let Model;
 
   switch (entity) {
-    // case 'assay':
-    //   debug('Model is an assay!');
-    //   Model = Models.Assay;
-    //   break;
+    case 'assay':
+      Model = Assay;
+      break;
     case 'cellLine':
       Model = CellLine;
       break;

@@ -8,7 +8,7 @@
     "build:watch": "babel src -d dist --watch",
     "build:docker": "npm run build && docker build -t 146.203.54.165:5000/biocomplete .",
     "deploy": "docker push 146.203.54.165:5000/biocomplete",
-    "start:dev": "babel-node src/server.js",
+    "start:dev": "DEBUG=server* babel-node src/server.js",
     "start:prod": "node dist/server.js"
   },
   "repository": {
@@ -50,6 +50,7 @@
     "mongoose": "^4.4.0"
   },
   "devDependencies": {
+    "axios": "^0.9.1",
     "babel-core": "^6.4.5",
     "babel-eslint": "^4.1.8",
     "babel-loader": "^6.2.2",

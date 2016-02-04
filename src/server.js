@@ -8,6 +8,7 @@ import bodyParser from 'koa-bodyparser';
 import _debug from 'debug';
 
 import makeRoutes from './routes';
+import runQueries from './query';
 
 const debug = _debug('server');
 
@@ -31,6 +32,10 @@ app.use(convert(compress()));
 
 makeRoutes(app);
 
+if (process.env.NODE_ENV !== 'production') {
+  mongoose.set('debug', true);
+  runQueries();
+}
 
 app.listen(PORT);
 debug(`Server is now running on port ${PORT}.`);

@@ -1,4 +1,4 @@
-export default [
+module.exports = [
   {
     "synonym": "Barrett's esophageal cell line",
     "name": "Barrett's epithelial cell line"
