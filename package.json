@@ -1,0 +1,64 @@
+{
+  "name": "biocomplete",
+  "version": "1.0.0",
+  "description": "An autocomplete server for biological terms.",
+  "main": "index.js",
+  "scripts": {
+    "build": "babel src -d dist --no-comments",
+    "build:watch": "babel src -d dist --watch",
+    "build:docker": "npm run build && docker build -t 146.203.54.165:5000/biocomplete .",
+    "deploy": "docker push 146.203.54.165:5000/biocomplete",
+    "start:dev": "babel-node src/server.js",
+    "start:prod": "node dist/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dcic/biocomplete.git"
+  },
+  "keywords": [
+    "BD2K",
+    "LINCS",
+    "BD2K-LINCS",
+    "DCIC",
+    "biocomplete",
+    "biological",
+    "terms",
+    "autocomplete"
+  ],
+  "author": "Michael McDermott <michael@mgmcdermott.com> (http://mgmcdermott.com/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dcic/biocomplete/issues"
+  },
+  "homepage": "https://github.com/dcic/biocomplete#readme",
+  "dependencies": {
+    "babel-runtime": "^6.3.19",
+    "csv-parse": "^1.0.1",
+    "debug": "^2.2.0",
+    "elasticsearch": "^10.1.3",
+    "kerberos": "0.0.18",
+    "koa": "^2.0.0-alpha.3",
+    "koa-bodyparser": "^2.0.1",
+    "koa-compress": "^1.0.8",
+    "koa-convert": "^1.2.0",
+    "koa-cors": "0.0.16",
+    "koa-logger": "^1.3.0",
+    "koa-route": "^3.0.0",
+    "lodash": "^4.2.1",
+    "mongodb": "^1.4.40",
+    "mongoosastic": "^3.6.1",
+    "mongoose": "^4.4.0"
+  },
+  "devDependencies": {
+    "babel-core": "^6.4.5",
+    "babel-eslint": "^4.1.8",
+    "babel-loader": "^6.2.2",
+    "babel-plugin-transform-runtime": "^6.4.3",
+    "babel-polyfill": "^6.3.14",
+    "babel-preset-es2015": "^6.3.13",
+    "babel-preset-stage-0": "^6.3.13",
+    "babel-register": "^6.4.3",
+    "eslint": "^1.10.3",
+    "eslint-config-airbnb": "^4.0.0"
+  }
+}
