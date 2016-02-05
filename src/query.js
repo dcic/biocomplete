@@ -75,7 +75,7 @@ export function insertAllAssays() {
 }
 
 export default () => {
-  // esClient.indices.delete({ index: '_all' }, () => {
+  // esClient.indices.delete({ index: 'celllines,assay' }, () => {
   //   insertAllAssays();
   //   insertAllCellLines();
   // });

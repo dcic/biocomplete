@@ -6,11 +6,13 @@ const debug = _debug('server:routes');
 
 const BASE = '/biocomplete/api/v1';
 
-function runSearch(Model, searchQ) {
+function runSearch(Model, searchQ, index = '_all') {
   return new Promise((resolve, reject) => {
     const elasticQ = {
-      query_string: {
-        query: searchQ,
+      query: {
+        match_phrase_prefix: {
+          [index]: searchQ,
+        },
       },
     };
     Model.search(elasticQ, { hydrate: true }, (err, results) => {
@@ -49,7 +51,7 @@ const searchEntities = async (ctx, entity) => {
   if (!query) {
     ctx.throw(400, 'No search term provided. Use the "q" query parameter to search.');
   }
-  ctx.body = await runSearch(Model, query);
+  ctx.body = await runSearch(Model, query, 'cellline');
 };
 
 const getCounts = async (ctx) => {
