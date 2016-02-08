@@ -37,15 +37,16 @@ const cellSchema = new Schema({
   },
   type: String,
   url: String,
-  description: String,
+  description: {
+    type: String,
+    es_indexed: true,
+    es_type: 'string',
+  },
 });
 
 export const esClient = new elasticSearch.Client({
-  hosts: [
-    '146.203.54.74:31000',
-    '146.203.54.165:31000',
-    '146.203.54.92:31000',
-  ],
+  host: '146.203.54.239:31000',
+  sniffOnStart: true,
   requestTimeout: 1000000,
   sniffOnConnectionFault: true,
   log: process.env.NODE_ENV === 'production' ? undefined : 'trace',

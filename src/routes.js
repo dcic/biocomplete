@@ -1,26 +1,37 @@
 import _debug from 'debug';
 import route from 'koa-route';
 
-import { Assay, CellLine } from './models';
+import { esClient, Assay, CellLine } from './models';
 const debug = _debug('server:routes');
 
 const BASE = '/biocomplete/api/v1';
 
-function runSearch(Model, searchQ, index = '_all') {
+function runSearch(Model, searchQ, index, type) {
   return new Promise((resolve, reject) => {
-    const elasticQ = {
+    const body = {
       query: {
         match_phrase_prefix: {
-          [index]: searchQ,
+          _all: searchQ,
         },
       },
     };
-    Model.search(elasticQ, { hydrate: true }, (err, results) => {
-      if (err) {
+    esClient
+      .search({ index, type, body })
+      .then((resp) => {
+        const resultIds = resp.hits.hits.map((resultObj) => resultObj._id);
+        Model
+          .find({ _id: { $in: resultIds } })
+          .lean()
+          .exec((dbErr, dbResults) => {
+            if (dbErr) {
+              reject(dbErr);
+            } else {
+              resolve(dbResults);
+            }
+          });
+      }, (err) => {
         reject(err);
-      }
-      resolve(results.hits.hits);
-    });
+      });
   });
 }
 
@@ -30,13 +41,19 @@ const searchEntities = async (ctx, entity) => {
   }
 
   let Model;
+  let index;
+  let type;
 
   switch (entity) {
     case 'assay':
       Model = Assay;
+      index = 'assays';
+      type = 'assay';
       break;
     case 'cellLine':
       Model = CellLine;
+      index = 'celllines';
+      type = 'cellline';
       break;
     // case 'disease':
     //   Model = Models.Disease;
@@ -51,12 +68,13 @@ const searchEntities = async (ctx, entity) => {
   if (!query) {
     ctx.throw(400, 'No search term provided. Use the "q" query parameter to search.');
   }
-  ctx.body = await runSearch(Model, query, 'cellline');
+  ctx.body = await runSearch(Model, query, index, type);
 };
 
 const getCounts = async (ctx) => {
+  const assays = await Assay.count().exec();
   const cellLines = await CellLine.count().exec();
-  ctx.body = { cellLines };
+  ctx.body = { assays, cellLines };
 };
 
 const healthCheck = async (ctx) => {

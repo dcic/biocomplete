@@ -8,7 +8,6 @@ import bodyParser from 'koa-bodyparser';
 import _debug from 'debug';
 
 import makeRoutes from './routes';
-import runQueries from './query';
 
 const debug = _debug('server');
 
@@ -34,7 +33,7 @@ makeRoutes(app);
 
 if (process.env.NODE_ENV !== 'production') {
   mongoose.set('debug', true);
-  runQueries();
+  require('./query')();
 }
 
 app.listen(PORT);
