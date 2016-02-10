@@ -4,17 +4,11 @@ ENV SOURCE_DIR /usr/src
 RUN mkdir -p $SOURCE_DIR && cd $SOURCE_DIR
 WORKDIR $SOURCE_DIR
 
-# Copy files needed for npm and bower
+ENV NODE_ENV production
+
 COPY package.json $SOURCE_DIR/
 
-#############################################################
-#### Although RUN commands are better when run together, ####
-#### these were split up so that docker could cache the  ####
-#### installed dependencies from npm and bower.          ####
-#############################################################
-
-RUN npm install --production && \
-    npm config set production
+RUN npm install --production
 
 COPY dist $SOURCE_DIR/dist
 
