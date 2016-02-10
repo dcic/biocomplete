@@ -33,7 +33,8 @@ makeRoutes(app);
 
 if (process.env.NODE_ENV !== 'production') {
   mongoose.set('debug', true);
-  require('./query')();
+  const runQueries = require('./query').default;
+  runQueries();
 }
 
 app.listen(PORT);
