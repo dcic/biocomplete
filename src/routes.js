@@ -6,7 +6,7 @@ const debug = _debug('server:routes');
 
 const BASE = '/biocomplete/api/v1';
 
-function runSuggest(Model, suggestQ, index, type) {
+function runSuggest(Model, suggestQ, index, type, size = 10) {
   return new Promise((resolve, reject) => {
     const suggestKey = `${type}-suggest`;
     const body = {
@@ -14,6 +14,7 @@ function runSuggest(Model, suggestQ, index, type) {
         text: suggestQ,
         completion: {
           field: 'suggest',
+          size,
         },
       },
     };
@@ -72,7 +73,8 @@ const suggestEntities = async (ctx, entity) => {
   if (!query) {
     ctx.throw(400, 'No query term provided. Use the "q" query parameter to search.');
   }
-  ctx.body = await runSuggest(Model, query, index, type);
+  const size = ctx.request.query.size;
+  ctx.body = await runSuggest(Model, query, index, type, size);
 };
 
 const getCounts = async (ctx) => {

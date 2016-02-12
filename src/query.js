@@ -13,12 +13,7 @@ const debug = _debug('server:queries');
 export function insertAllCellLines() {
   CellLine.remove({}, () => {
     const total = 100;
-    let index = 0;
     _.each(cellAttributes, ({ name, type, url, description, id }) => {
-      index++;
-      if (index > total) {
-        return;
-      }
       CellLine.create({
         name,
         suggest: {
@@ -160,21 +155,21 @@ export default () => {
   //   esClient.indices.create({ index: 'celllines' }, () => {
   //     esClient.indices.putMapping(cellLineMapping, () => {
   //       // insertAllCellLines();
-  //       const stream = CellLine.synchronize();
-  //       let count = 0;
-  //       stream.on('data', () => count++);
-  //       stream.on('close', () => debug('indexed ' + count + ' documents!'));
-  //       stream.on('error', (err) => debug(err));
+        let stream = CellLine.synchronize();
+        let count = 0;
+        stream.on('data', () => count++);
+        stream.on('close', () => debug('indexed ' + count + ' documents!'));
+        stream.on('error', (err) => debug(err));
   //     });
   //   });
   //   esClient.indices.create({ index: 'assays' }, () => {
   //     esClient.indices.putMapping(assayMapping, () => {
-  //       const stream = Assay.synchronize();
-  //       let count = 0;
-  //
-  //       stream.on('data', () => count++);
-  //       stream.on('close', () => debug('indexed ' + count + ' documents!'));
-  //       stream.on('error', (err) => debug(err));
+  //       // insertAllAssays();
+        // stream = Assay.synchronize();
+        // count = 0;
+        // stream.on('data', () => count++);
+        // stream.on('close', () => debug('indexed ' + count + ' documents!'));
+        // stream.on('error', (err) => debug(err));
   //     });
   //   });
   // });
