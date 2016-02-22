@@ -78,4 +78,5 @@ entitySchema.plugin(mongoosastic, mongoosasticConf);
 cellSchema.plugin(mongoosastic, mongoosasticConf);
 
 export const Assay = mongoose.model('Assay', entitySchema);
+export const Drug = mongoose.model('Drug', entitySchema);
 export const CellLine = mongoose.model('CellLine', cellSchema);
