@@ -57,9 +57,14 @@ const suggestEntities = async (ctx, entity) => {
 };
 
 const getCounts = async (ctx) => {
-  const assays = await Assay.count().exec();
-  const cellLines = await CellLine.count().exec();
-  ctx.body = { assays, cellLines };
+  ctx.body = {
+    assays: await Assay.count().exec(),
+    cellLines: await CellLine.count().exec(),
+    disease: await Disease.count().exec(),
+    drug: await Drug.count().exec(),
+    gene: await Gene.count().exec(),
+    organism: await Organism.count().exec(),
+  };
 };
 
 const healthCheck = async (ctx) => {
