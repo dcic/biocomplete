@@ -35,5 +35,5 @@ export default () => {
   // require('./diseases').default();
   // require('./drugs').default();
   // require('./genes').default();
-  require('./organisms').default();
+  // require('./organisms').default();
 };
