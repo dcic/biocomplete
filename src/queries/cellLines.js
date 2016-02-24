@@ -1,15 +1,19 @@
 /* eslint no-param-reassign:0 */
 import _debug from 'debug';
+import each from 'lodash/each';
 
-import { esClient, CellLine } from './models';
-import cellAttributes from '../data/cellTissueAttributes';
-// import cellSynonyms from '../data/cellTissueSynonyms';
-
+import { esClient, CellLine } from '../models';
 const debug = _debug('server:queries:cellLines');
+
+debug('Importing cell attributes...');
+import cellAttributes from '../../data/cellTissueAttributes';
+debug('Finished importing cell attributes.');
+// import cellSynonyms from '../../data/cellTissueSynonyms';
+
 
 export function insertAllCellLines() {
   CellLine.remove({}, () => {
-    cellAttributes.forEach(({ name, type, url, description, id }) => {
+    each(cellAttributes, ({ name, type, url, description, id }) => {
       CellLine.create({
         name,
         suggest: {

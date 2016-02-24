@@ -31,10 +31,11 @@ app.use(convert(compress()));
 
 makeRoutes(app);
 
+debug(`NODE_ENV: ${process.env.NODE_ENV}`);
+
 if (process.env.NODE_ENV !== 'production') {
   mongoose.set('debug', true);
-  const runQueries = require('./query').default;
-  runQueries();
+  require('./queries/run').default();
 }
 
 app.listen(PORT);

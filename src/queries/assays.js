@@ -2,7 +2,7 @@
 import fs from 'fs';
 import _debug from 'debug';
 import parse from 'csv-parse';
-import { esClient, Assay } from './models';
+import { esClient, Assay } from '../models';
 
 const debug = _debug('server:queries:assays');
 

@@ -1,7 +1,8 @@
+/* eslint no-param-reassign:0 */
 import _debug from 'debug';
 import route from 'koa-route';
 
-import { esClient, Assay, CellLine } from './models';
+import { esClient, Assay, CellLine, Disease, Drug, Gene, Organism } from './models';
 const debug = _debug('server:routes');
 
 const BASE = '/biocomplete/api/v1';
@@ -60,13 +61,31 @@ const suggestEntities = async (ctx, entity) => {
       index = 'celllines';
       type = 'cellline';
       break;
-    // case 'disease':
-    //   Model = Models.Disease;
-    //   break;
+    case 'disease':
+      Model = Disease;
+      index = 'diseases';
+      type = 'disease';
+      break;
+    case 'drug':
+      Model = Drug;
+      index = 'drugs';
+      type = 'drug';
+      break;
+    case 'gene':
+      Model = Gene;
+      index = 'genes';
+      type = 'gene';
+      break;
+    case 'organism':
+      Model = Organism;
+      index = 'organisms';
+      type = 'organism';
+      break;
     default:
       ctx.throw(
         400,
-        'Invalid entity. Currently only assay, cellLine, and disease are supported.'
+        'Invalid entity. Currently only assay, cellLine, ' +
+        'disease, drug, gene, and organism are supported.'
       );
   }
   const query = ctx.request.query.q;

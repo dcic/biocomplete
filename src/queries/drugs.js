@@ -1,46 +1,43 @@
 /* eslint no-param-reassign:0 */
 import _debug from 'debug';
-import fs from 'fs';
-import parse from 'csv-parse';
-import { esClient, Drug } from './models';
+import each from 'lodash/each';
+import mongoose from 'mongoose';
+
+import { esClient, Drug } from '../models';
+
+import drugAttributes from '../../data/chemicalMergeAttributes';
+// import drugSynonyms from '../../data/chemicalMergeSynonyms';
 
 const debug = _debug('server:queries:drugs');
+const drugs = [];
 
 export function insertAllDrugs() {
   Drug.remove({}, () => {
-    debug('Reading DRON.csv...');
-    const drugsCSV = fs.readFileSync('data/DRON.csv').toString();
-    debug('Parsing DRON.csv...');
-    parse(drugsCSV, (err, drugs) => {
-      drugs.forEach((drugArr, index) => {
-        const ontologyId = drugArr[0];
-        const name = drugArr[1];
-        // Skip if at first row of file or if name doesn't contain letters
-        if (index === 0 || !/[a-zA-Z]/.test(name)) {
-          return;
-        }
-        Drug.create({
+    let drugsLeft = Object.keys(drugAttributes).length;
+    each(drugAttributes, ({ name, type, url, description, id }) => {
+      if (/[a-zA-Z]/.test(name)) {
+        const _id = new mongoose.Types.ObjectId;
+        drugs.push({
+          _id,
           name,
           suggest: {
             input: name,
             output: name,
+            payload: { _id },
           },
-          ontologyId,
-        }, (createErr, drug) => {
-          if (createErr) {
-            debug(`Error occurred inserting drug: ${createErr}`);
-          } else {
-            drug.suggest.payload = {
-              _id: drug._id,
-            };
-            drug.save((saveErr) => {
-              if (saveErr) {
-                debug(saveErr);
-              }
-            });
-          }
+          type,
+          url,
+          description,
+          ontologyId: id,
         });
-      });
+      }
+      drugsLeft--;
+      debug(`There are ${drugsLeft} drugs left.`);
+    });
+    Drug.insertMany(drugs, (err) => {
+      if (err) {
+        debug(err);
+      }
     });
   });
 }
@@ -55,6 +52,9 @@ const drugMapping = {
           type: 'string',
         },
         ontologyId: {
+          type: 'string',
+        },
+        description: {
           type: 'string',
         },
         suggest: {
@@ -72,7 +72,7 @@ export default () => {
   esClient.indices.delete({ index: 'drugs' }, () => {
     esClient.indices.create({ index: 'drugs' }, () => {
       esClient.indices.putMapping(drugMapping, () => {
-        insertAllDrugs();
+        // insertAllDrugs();
         const stream = Drug.synchronize();
         let count = 0;
         stream.on('data', () => count++);

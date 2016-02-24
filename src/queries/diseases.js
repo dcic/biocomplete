@@ -1,46 +1,42 @@
 /* eslint no-param-reassign:0 */
 import _debug from 'debug';
-import fs from 'fs';
-import parse from 'csv-parse';
+import each from 'lodash/each';
 
-import { esClient, Disease } from './models';
-
+import { esClient, Disease } from '../models';
 const debug = _debug('server:queries:diseases');
+
+debug('Importing attributes...');
+import diseaseAttributes from '../../data/diseaseMergeAttributes';
+debug('Finished importing attributes.');
+// import diseaseSynonyms from '../../data/diseaseMergeSynonyms';
+
 
 export function insertAllDiseases() {
   Disease.remove({}, () => {
-    debug('Reading DRON.csv...');
-    const diseasesCSV = fs.readFileSync('data/DRON.csv').toString();
-    debug('Parsing DRON.csv...');
-    parse(diseasesCSV, (err, diseases) => {
-      diseases.forEach((diseaseArr, index) => {
-        const ontologyId = diseaseArr[0];
-        const name = diseaseArr[1];
-        // Skip if at first row of file or if name doesn't contain letters
-        if (index === 0 || !/[a-zA-Z]/.test(name)) {
-          return;
+    each(diseaseAttributes, ({ name, type, url, description, id }) => {
+      Disease.create({
+        name,
+        suggest: {
+          input: name,
+          output: name,
+        },
+        type,
+        url,
+        description,
+        ontologyId: id,
+      }, (err, disease) => {
+        if (err) {
+          debug(`Error occurred inserting disease: ${err}`);
+        } else {
+          disease.suggest.payload = {
+            _id: disease._id,
+          };
+          disease.save((saveErr) => {
+            if (saveErr) {
+              debug(saveErr);
+            }
+          });
         }
-        Disease.create({
-          name,
-          suggest: {
-            input: name,
-            output: name,
-          },
-          ontologyId,
-        }, (createErr, disease) => {
-          if (createErr) {
-            debug(`Error occurred inserting disease: ${createErr}`);
-          } else {
-            disease.suggest.payload = {
-              _id: disease._id,
-            };
-            disease.save((saveErr) => {
-              if (saveErr) {
-                debug(saveErr);
-              }
-            });
-          }
-        });
       });
     });
   });
@@ -56,6 +52,9 @@ const diseaseMapping = {
           type: 'string',
         },
         ontologyId: {
+          type: 'string',
+        },
+        description: {
           type: 'string',
         },
         suggest: {

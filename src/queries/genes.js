@@ -1,47 +1,43 @@
 /* eslint no-param-reassign:0 */
 import _debug from 'debug';
-import fs from 'fs';
-import parse from 'csv-parse';
+import each from 'lodash/each';
+import mongoose from 'mongoose';
 
-import { esClient, Gene } from './models';
+import { esClient, Gene } from '../models';
+
+import geneAttributes from '../../data/geneMergeAttributes';
+// import geneSynonyms from '../../data/geneMergeSynonyms';
 
 const debug = _debug('server:queries:genes');
+const genes = [];
 
 export function insertAllGenes() {
   Gene.remove({}, () => {
-    debug('Reading DRON.csv...');
-    const genesCSV = fs.readFileSync('data/DRON.csv').toString();
-    debug('Parsing DRON.csv...');
-    parse(genesCSV, (err, genes) => {
-      genes.forEach((geneArr, index) => {
-        const ontologyId = geneArr[0];
-        const name = geneArr[1];
-        // Skip if at first row of file or if name doesn't contain letters
-        if (index === 0 || !/[a-zA-Z]/.test(name)) {
-          return;
-        }
-        Gene.create({
+    let genesLeft = Object.keys(geneAttributes).length;
+    each(geneAttributes, ({ name, type, url, description, id }) => {
+      if (/[a-zA-Z]/.test(name)) {
+        const _id = new mongoose.Types.ObjectId;
+        genes.push({
+          _id,
           name,
           suggest: {
             input: name,
             output: name,
+            payload: { _id },
           },
-          ontologyId,
-        }, (createErr, gene) => {
-          if (createErr) {
-            debug(`Error occurred inserting gene: ${createErr}`);
-          } else {
-            gene.suggest.payload = {
-              _id: gene._id,
-            };
-            gene.save((saveErr) => {
-              if (saveErr) {
-                debug(saveErr);
-              }
-            });
-          }
+          type,
+          url,
+          description,
+          ontologyId: id,
         });
-      });
+      }
+      genesLeft--;
+      debug(`There are ${genesLeft} genes left.`);
+    });
+    Gene.insertMany(genes, (err) => {
+      if (err) {
+        debug(err);
+      }
     });
   });
 }
@@ -56,6 +52,9 @@ const geneMapping = {
           type: 'string',
         },
         ontologyId: {
+          type: 'string',
+        },
+        description: {
           type: 'string',
         },
         suggest: {
@@ -73,7 +72,7 @@ export default () => {
   esClient.indices.delete({ index: 'genes' }, () => {
     esClient.indices.create({ index: 'genes' }, () => {
       esClient.indices.putMapping(geneMapping, () => {
-        insertAllGenes();
+        // insertAllGenes();
         const stream = Gene.synchronize();
         let count = 0;
         stream.on('data', () => count++);
