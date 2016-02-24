@@ -60,10 +60,10 @@ const getCounts = async (ctx) => {
   ctx.body = {
     assays: await Assay.count().exec(),
     cellLines: await CellLine.count().exec(),
-    disease: await Disease.count().exec(),
-    drug: await Drug.count().exec(),
-    gene: await Gene.count().exec(),
-    organism: await Organism.count().exec(),
+    diseases: await Disease.count().exec(),
+    drugs: await Drug.count().exec(),
+    genes: await Gene.count().exec(),
+    organisms: await Organism.count().exec(),
   };
 };
 
