@@ -30,7 +30,7 @@ export function generateSynonymsFile() {
 export default () => {
   debug('Running queries...');
 
-  // require('./assays').default();
+  require('./assays').default();
   // require('./cellLines').default();
   // require('./diseases').default();
   // require('./drugs').default();

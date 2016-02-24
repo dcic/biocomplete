@@ -14,4 +14,4 @@ COPY dist $SOURCE_DIR/dist
 
 EXPOSE 4000
 
-CMD ["node", "dist/server.js"]
+CMD ["npm", "start"]

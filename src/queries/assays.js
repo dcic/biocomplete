@@ -2,81 +2,50 @@
 import fs from 'fs';
 import _debug from 'debug';
 import parse from 'csv-parse';
-import { esClient, Assay } from '../models';
+import { Assay } from '../models';
 
 const debug = _debug('server:queries:assays');
 
-export function insertAllAssays() {
+export default function insertAllAssays() {
   Assay.remove({}, () => {
     const assaysCSV = fs.readFileSync('data/BAO.csv').toString();
     parse(assaysCSV, (err, assays) => {
-      assays.forEach((assayArr, index) => {
-        const ontologyId = assayArr[0];
+      if (err) {
+        debug(err);
+      }
+      const assaysToInsert = assays.map((assayArr, index) => {
+        const url = assayArr[0];
         const name = assayArr[1];
+        const description = assayArr[3];
         // Skip first row of file
         if (index === 0) {
-          return;
+          return {};
         }
-        Assay.create({
+        // Split url by /
+        let ontologyId = url.split('/');
+        // Get the last section of the url
+        ontologyId = ontologyId[ontologyId.length - 1];
+        // Some urls look like http://www.bioassayontology.org/bao#BAO_0002720
+        // We just want BAO_0002720
+        ontologyId = ontologyId.split('#');
+        // This will be the proper id regardless of whether or not a # exists
+        ontologyId = ontologyId[ontologyId.length - 1];
+
+        return {
           name,
-          suggest: {
-            input: name,
-            output: name,
-          },
+          url,
+          type: 'assay',
           ontologyId,
-        }, (createErr, assay) => {
-          if (createErr) {
-            debug(`Error occurred inserting assay: ${createErr}`);
-          } else {
-            assay.suggest.payload = {
-              _id: assay._id,
-            };
-            assay.save((saveErr) => {
-              if (saveErr) {
-                debug(saveErr);
-              }
-            });
-          }
-        });
+          description,
+        };
+      });
+      Assay.insertMany(assaysToInsert, (insertErr, docs) => {
+        if (insertErr) {
+          debug(insertErr);
+        } else {
+          debug(`Inserted ${docs.length} assays.`);
+        }
       });
     });
   });
 }
-
-const assayMapping = {
-  index: 'assays',
-  type: 'assay',
-  body: {
-    assay: {
-      properties: {
-        name: {
-          type: 'string',
-        },
-        ontologyId: {
-          type: 'string',
-        },
-        suggest: {
-          type: 'completion',
-          analyzer: 'simple',
-          search_analyzer: 'simple',
-          payloads: true,
-        },
-      },
-    },
-  },
-};
-
-export default () => {
-  esClient.indices.delete({ index: 'assays' }, () => {
-    esClient.indices.create({ index: 'assays' }, () => {
-      esClient.indices.putMapping(assayMapping, () => {
-        insertAllAssays();
-        const stream = Assay.synchronize();
-        let count = 0;
-        stream.on('data', () => count++);
-        stream.on('close', () => debug(`Indexed ${count} assays.`));
-        stream.on('error', (err) => debug(err));
-      });
-    });
-  });
-};
